@@ -4,6 +4,7 @@ from world import World
 
 import random
 from ast import literal_eval
+from util import Queue, Stack
 
 # Load world
 world = World()
@@ -29,62 +30,52 @@ player = Player(world.starting_room)
 # traversal_path = ['n', 'n']
 traversal_path = []
 
-# Create the traversal graph
+opposite_directions = {"n": "s", "s": "n", "e": "w", "w": "e"}
+starting_room = player.current_room
+visited = {}  # dictionary
+# print(len(world.rooms))
+previous_directions = [None]
+curr_room = starting_room
+previous_room = None 
+next_direction = None
 
+while len(visited) < len(world.rooms): 
+	# put current room in visited  with empty routes
+	print("start", curr_room)
+	if curr_room.id not in visited:
+		curr_exits = curr_room.get_exits()
+		exits = {}
+		# build up current visited dictionary with exits not visited
+		# visited[curr_room.id] = {"n": "?", "s": "?", "w": "?", "e": "?"}
+		for ext in curr_exits:
+			exits[ext] = "?"
+			visited[curr_room.id] = exits
+			
+	print("visited:", visited)
+	# While number of rooms visited not = to all rooms
 
-def create_graph_from_map():
-    # Create graph starting at start room {room_id: exits/neighbors}
-    # {
-    #     0: {'n': '?', 's': '?', 'w': '?', 'e': '?'}
-    # }
-    traversal_map = {}
-    num_of_rooms = len(room_graph)
+	# check if current room have any exits
+	for direction in curr_exits:
+		# check if the visited room have any unvisited exits
+		if visited[curr_room.id][direction] == "?":
+			player.travel(direction)
+			traversal_path.append(direction)
+			next_direction = direction
+			previous_room = curr_room
+			curr_room = player.current_room # set current room to new room
+			
+			# update visited
+			exits = {}
+			for ext in curr_room.get_exits():
+				exits[ext] = "?"
+				visited[curr_room.id] = exits
 
-    for room_id in range(0, num_of_rooms):
-        exits = {}
-        current_room = world.rooms[room_id]
+			visited[previous_room.id][direction] = curr_room.id # set previous room direction to new room
+			visited[curr_room.id][opposite_directions[direction]] = previous_room.id #set new room direction to old room
 
-        if current_room.n_to is not None:
-            exits["n"] = current_room.n_to.id
-        if current_room.s_to is not None:
-            exits["s"] = world.rooms[room_id].s_to.id
-        if current_room.e_to is not None:
-            exits["e"] = world.rooms[room_id].e_to.id
-        if current_room.w_to is not None:
-            exits["w"] = world.rooms[room_id].w_to.id
-
-        traversal_map[current_room.id] = exits
-
-    print("traversal_map:", traversal_map)
-
-
-create_graph_from_map()
-
-
-# def get_neighboring_rooms(room_id):
-#     if room_id in world:
-#         return self.vertices[vertex_id]
-#     else:
-#         return None
-
-
-def get_route():
-    # Keep track of explored rooms.
-    # Get neighbors of start room, aka, get exits of current room (function)
-    # do dft traversal until room has no neighbors, or no exits (function)
-    # Then back track (How do we backtrack?) - do a BFS from current room to room with exits == "?"
-    # helper function to reverse directions
-    pass
-
-
-# DFT travesal
-def dft():
-    pass
-
-
-# Find next node with empty exits
-def bfs():
-    pass
+	print("next direction:",next_direction)
+	print("curr_room", curr_room)
+	print("new visited:", visited)
 
 
 # TRAVERSAL TEST
@@ -93,16 +84,16 @@ player.current_room = world.starting_room
 visited_rooms.add(player.current_room)
 
 for move in traversal_path:
-    player.travel(move)
-    visited_rooms.add(player.current_room)
+	player.travel(move)
+	visited_rooms.add(player.current_room)
 
 if len(visited_rooms) == len(room_graph):
-    print(
-        f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited"
-    )
+	print(
+		f"TESTS PASSED: {len(traversal_path)} moves, {len(visited_rooms)} rooms visited"
+	)
 else:
-    print("TESTS FAILED: INCOMPLETE TRAVERSAL")
-    print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
+	print("TESTS FAILED: INCOMPLETE TRAVERSAL")
+	print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
 
 
 #######
